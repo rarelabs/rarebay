@@ -1,0 +1,246 @@
+/* Home.module.css */
+
+.main {
+  padding: 20px 20px 60px;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.hr {
+  border: none;
+  border-bottom: 1px solid #efefef;
+  margin: 3em auto;
+}
+
+.earthContainer {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: transparent;
+  flex-direction: column;
+}
+
+.earth {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background-size: auto;
+  background-repeat: repeat;
+  background-blend-mode: color;
+}
+
+.horizon {
+  position: absolute;
+  bottom: -17%;
+  left: 0;
+  width: 100%;
+  height: 1%;
+  background-size: auto;
+  background-repeat: repeat;
+  background-blend-mode: color;
+  z-index: 3;
+}
+.hawk{
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: url("/hawks.png");
+  z-index: 10;
+  background-size: cover;
+}
+/* New styles for the horizon waves */
+.waves {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  position: absolute;
+  top: -50px; /* Adjust this to position the waves at the top edge of the horizon */
+  left: 0;
+  width: 100%;
+  pointer-events: none;
+}
+
+.waves li {
+  background: rgba(9, 179, 209, 0.875); /* Wave color */
+  margin: -175px; /* Overlap the waves so that only the top curved part shows */
+  width: 100px;
+  border-radius: 40%;
+  box-shadow: 0px 0px 10px rgba(6, 141, 161, 0.158);
+}
+.waves.day {
+  background: #27d2f0; /* Wave color */
+  margin: -175px; /* Overlap the waves so that only the top curved part shows */
+  width: 100px;
+  border-radius: 41%;
+}
+.waves.night {
+  background: #15545f; /* Wave color */
+  margin: -175px; /* Overlap the waves so that only the top curved part shows */
+  width: 100px;
+  border-radius: 41%;
+}
+/* Stagger the animations for each wave */
+.waves li:nth-child(1) {
+  animation-delay: 0.1s;
+  background: #27d2f0; /* Wave color */
+}
+.waves li:nth-child(2) {
+  animation-delay: 0.2s;
+  background: #05798d; /* Wave color */
+}
+.waves li:nth-child(3) {
+  animation-delay: 0.3s;
+  background: #27d2f0; /* Wave color */
+}
+.waves li:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+.horizon.day {
+  background-color: #20759c;
+}
+.yatch{
+  position: absolute;
+  bottom: 3%;
+  z-index: 2;
+  filter: brightness(0);
+  }
+  .yatch2{
+    position: absolute;
+    bottom: 1%;
+    z-index: 2;
+    filter: brightness(0);
+    }
+.horizon.night {
+  background-color: rgba(90, 90, 120, 0.5); /* Nighttime dark green */
+}
+
+/* --- New Styles for the Single Celestial Body --- */
+
+/* This container rotates (using transform) about its bottom center */
+.celestialContainer {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform-origin: bottom center;
+  transition: transform 2s linear;
+  z-index: 0;
+}
+
+/* The celestial body: fixed size, circular with a 50px shadow blur.
+   It is offset upward along the arc (adjust the translateY value as needed). */
+.celestialBody {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%, -300px); /* 300px offset from the horizon */
+}
+
+/* Controls (if you need additional UI controls) */
+.controls {
+  margin-top: 20px;
+  text-align: center;
+}
+
+
+/* Outer container moves the yacht in a straight line across the screen */
+.yachtContainer {
+  position: fixed;
+  left: 77%;
+  bottom: 3.2%;
+  z-index: 2;
+width: 100%;
+}
+.yachtContainer2 {
+  position: fixed;
+  bottom: -5%;
+  z-index: 4;
+width: 100%;
+  /* Linear movement from its starting position to off-screen right in 30s, then loops */
+  animation: cruise 120s linear infinite;
+}
+.yacht2 {
+  display: block;
+}
+/* Inner element (the yacht image) wobbles */
+.yacht {
+  display: block;
+  /* Wobble animation: slight rotations left and right */
+  animation: wobble 3s ease-in-out infinite;
+}
+
+/* Keyframes for the linear cruise across the screen */
+@keyframes cruise {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    /* Adjust the distance as needed. Here we move it 100vw (viewport width) */
+    transform: translateX(100vw);
+  }
+}
+
+
+/* Keyframes for the wobble effect */
+@keyframes wobble {
+
+  0% {
+    transform: rotate(0deg);
+    z-index: 0;
+    transition: ease 15s;
+  }
+  25% {
+    transform: rotate(15deg);
+    z-index: 1;
+    transition: ease 5s;
+  }
+  50% {
+    transform: rotate(0deg);
+    transition: ease 15s;
+  }
+  75% {
+    transform: rotate(-15deg);
+    transition: ease 15s;
+  }
+  100% {
+    transform: rotate(0deg);
+    transition: ease 21s;
+  }
+}
+@media(max-width: 700px) {
+  .earthContainer{
+    display: none;
+  }
+  .bird{
+    display: none;
+  }
+  .earth{
+display: none;
+  }
+  .horizon{
+    display: none;
+  }
+  .waves{
+    display: none;
+  }
+  .waves li{
+    display: none;
+  }
+}

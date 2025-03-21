@@ -1,0 +1,254 @@
+.container{
+  justify-content: center;
+  align-items: center;
+  width: 50%;
+height: auto;
+  color: white;
+  text-align-last: center;
+z-index: 10;
+padding: 10px;
+
+}
+.pric{
+display: flex;
+width: 100%;
+gap: 2px;
+justify-content: center;
+align-itema: center;
+}
+.tapButton{
+  border-top: 10px rgba(0, 0, 0, 0.5) solid;
+  border-radius: 50%;
+  width: 300px;
+  height: 300px;
+justify-self: center;
+align-self: center;
+display: flex;
+background: rgba(0, 225, 255, 0.7);
+background-blend-mode: color;
+  margin: 10px;
+  position: relative;
+  justify-content: center;
+  align-items: center;
+z-index: 2;
+box-shadow: 0px 0px 50px rgba(0, 14, 75, 0.466);
+cursor: pointer;
+border-bottom: 10px rgba(0, 0, 0, 0) solid;
+}
+.tapButton:hover:active{
+  transform: scale(1.02);
+ backdrop-filter: blur(10px);
+ background: rgba(29, 29, 29, 0.7);
+ border: solid 1px rgba(123,127,127,0.1);
+ border-top: 0px rgb(0, 0, 0) solid;
+ box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.801);
+}
+
+.address{
+  width: auto;
+  font-family: Courier;
+  padding: 5px;
+  border: none;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: row;
+  gap: 1%;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.flash{
+  color: gold;
+  font-size: 50px;
+  position: fixed;
+  z-index: 500;
+text-shadow: 5px 5px 10px rgba(238, 255, 0, 0.288);
+}
+.prog{
+  height: 30px;
+box-shadow: 5px 5px 10px black;
+}
+.stats{
+  width: auto;
+  font-family: Courier;
+  padding: 10px 10px;
+  border: solid 0px;
+  border-radius: 10px;
+  display: flex;
+  font-weight: 900;
+  text-align: center;
+  font-family: 'Courier New';
+  flex-direction: row;
+  gap: 1%;
+  justify-content: space-between;
+ backdrop-filter: blur(10px);
+ background: rgba(10, 10, 10, 0.7);
+ border: solid 1px rgba(123,127,127,0.1);
+box-shadow: 5px 5px 10px black;
+}
+.points{
+  font-size: 12px;
+  font-weight: 900;
+  border: solid 0px gray;
+  border-radius: 10px;
+  box-shadow: 5px 5px 10px black;
+  color: gold;
+  padding: 10px;
+  text-shadow: 2px 2px 2px black;
+  filter: grayscale(100%);
+  background: rgba(10, 10, 10, 0.7);
+  border: solid 1px rgba(123,127,127,0.1);
+  min-height: 50px;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+}
+.point{
+  font-size: 16px;
+  font-weight: 500;
+  background: rgba(10, 10, 10, 0.7);
+  border: solid 1px rgba(123,127,127,0.1);
+  border-radius: 10px;
+  font-weight: 900;
+ backdrop-filter: blur(10px);
+box-shadow: 5px 5px 10px black;
+  color: white;
+  gap: 2%;
+  padding: 5px;
+width: 170px;
+justify-content: center;
+align-items: center;
+display: flex;
+  text-shadow: 2px 2px 2px black;
+  text-align: center;
+  cursor: pointer;
+  min-height: 50px;
+}
+.progress{
+  font-weight: 500;
+  border: solid 0px rgba(23, 23, 23, 0.5);
+  border-radius: 10px;
+  font-weight: 900;
+ backdrop-filter: blur(10px);
+ background: rgba(10, 10, 10, 0.7);
+ border: solid 1px rgba(123,127,127,0.1);
+  color: white;
+  gap: 1%;
+  padding: 10px;
+  text-shadow: 2px 2px 2px black;
+}
+.point1{
+  border-radius: 100%;
+  font-weight: 900;
+  color: white;
+display: flex;
+top: 30%;
+height: 200px;
+width: 200px;
+z-index: 1;
+  text-shadow: 2px 2px 2px black;
+box-shadow: 5px 5px 10px black;
+}
+
+.leaderboard{
+  align-items: start;
+  padding-top: 50px;
+  width: 100%;
+  justify-content: flex-start;
+  border: solid 0px rgb(29, 29, 29);
+  border-radius: 10px;
+  margin-top: 10px;
+  gap: 1%;
+  font-size: 13px;
+  padding: 10px;
+ backdrop-filter: blur(10px);
+ background: rgba(10, 10, 10, 0.7);
+ border: solid 1px rgba(123,127,127,0.1);
+            height: auto;
+            overflow: scroll;
+            max-height: 200px;
+overflow: scroll;
+            align-items: center;     
+box-shadow: 5px 5px 10px black;    
+}
+
+.leaderboard2{
+  align-items: center;
+  width: 50%;
+  justify-content: center;
+  background: rgba(10, 10, 10, 0.7);
+  border: solid 1px rgba(123,127,127,0.1);
+  border-radius: 10px;
+  margin-top: 10px;
+  gap: 1%;
+  font-size: 20px;
+  padding: 10px;
+            height: auto;
+            overflow: scroll;
+            max-height: 200px;
+overflow: scroll;
+box-shadow: 5px 5px 10px black;
+            align-items: center;         
+}
+
+.progress-container {
+  width: 300px;
+  height: 20px;
+  background-color: #e0e0e0; /* Light gray background */
+  border-radius: 10px; /* Rounded corners */
+box-shadow: 5px 5px 10px black;
+  overflow: hidden; /* Ensure content inside respects the border radius */
+  margin-top: 20px; /* Space above the progress bar */
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: skyblue; /* Sky blue color for the progress fill */
+  width: 0%; /* Initial width, to be controlled dynamically */
+  border-radius: 6px; /* Ensures the progress bar itself is rounded */
+  transition: width 0.3s ease; /* Smooth transition for width changes */
+}
+.player {
+  display: flex;
+  gap: 30px;
+  padding: 10px;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+.fls{
+  display: flex;
+  gap: 0.5%;
+}
+@media(max-width: 1200px) {
+  .container {
+    width: 100%;
+  }
+  .fls{
+    flex-direction: column;
+  }
+  .leaderboard2{
+    width: 100%;
+    padding: 15px;
+  }
+  .leaderboard{
+    width: 100%;
+  }
+}
+@media(max-width: 479px) {
+  .container {
+    width: 100%;
+  }
+.leaderboard2{
+  width: 100%;
+  padding: 15px;
+}
+.leaderboard{
+  width: 100%;
+}
+.fls{
+  flex-direction: column;
+}
+
+}

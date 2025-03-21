@@ -1,0 +1,40 @@
+{
+  "private": true,
+  "scripts": {
+    "dev": "next",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@okxconnect/ui": "latest",
+    "@okxconnect/universal-provider": "latest",
+    "@vercel/analytics": "^1.4.1",
+    "@vercel/postgres": "latest",
+    "apexcharts": "^4.5.0",
+    "axios": "^1.7.9",
+    "ethers": "^6.13.5",
+    "gsap": "^3.12.7",
+    "js-cookie": "^3.0.5",
+    "lightweight-charts": "^5.0.3",
+    "next": "latest",
+    "next-intl": "^3.26.3",
+    "prop-types": "latest",
+    "react": "latest",
+    "react-apexcharts": "^1.7.0",
+    "react-blockies": "^1.4.1",
+    "react-dom": "latest",
+    "react-hook-form": "latest",
+    "react-qr-code": "latest",
+    "thirdweb": "latest",
+    "web3": "latest",
+    "elliptic": ">=6.6.1"
+  },
+  "devDependencies": {
+    "@types/react": "latest",
+    "@types/react-blockies": "^1.4.4",
+    "typescript": "latest",
+    "webpack": "latest",
+    "webpack-node-externals": "latest",
+    "axios": ">=1.8.2"
+  }
+}
