@@ -19,7 +19,7 @@ export default function TransactionButton(props: TransactionButtonProps) {
     return (
         <ThirdwebTransactionButton
         theme={"light"}
-        style={{width: '100%', background: 'transparent', border:  'none', height: '100%', color: "white", padding: '0px', fontSize: '20px', fill: 'white', zIndex: '5'}}
+        style={{width: '100%', background: 'transparent', border:  'none', height: '100%', color: "white", padding: '0px', fontSize: '17px', fill: 'white', zIndex: '5'}}
             transaction={props.transaction}
             onTransactionSent={(result) =>
                (props.onSent, addToast('info', `Transaction sent`))

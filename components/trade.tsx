@@ -27,10 +27,17 @@ import { useRouter } from 'next/router';
 import { formatNumber } from './swap';
 
 const EXPIRATION_TIMES = {
-  '1hr': 3600,
-  '24hrs': 86400,
-  '1wk': 604800,
-  '1month': 2592000,
+  "1d": 24 * 60 * 60,
+  "1Wk": 7 * 24 * 60 * 60,
+  "1Mn": 30 * 24 * 60 * 60,
+  "1Yr": 365 * 24 * 60 * 60,
+};
+
+const EXPIRATION_OPTIONS: Record<string, number> = {
+  "1d": 24 * 60 * 60,
+  "1Wk": 7 * 24 * 60 * 60,
+  "1Mn": 30 * 24 * 60 * 60,
+  "1Yr": 365 * 24 * 60 * 60,
 };
 
 const Trade = (props: { rootClassName: any; imageAlt: string; button7: any; button: any; button6: any; button5: any; button8: any; button72: any; button4: any; }) => {
@@ -61,9 +68,10 @@ const Trade = (props: { rootClassName: any; imageAlt: string; button7: any; butt
   const [reversed, setReversed] = useState(false); // State for reverse swap
   const [standard, setStandard] = useState(true); // State for standard swap
   const [inputAmount, setInputAmount] = useState<string>('1'); // For user input
-  const [slippage, setSlippage] = useState(0.1); // Set default slippage (1%)
+  const minOutput = getMinimumAmount(inputAmount);
+
   const {addToast} = useToast();
-  const [minOutput, setMinOutput] = useState<string>('0'); // For user input
+  
   const input1Ref = useRef(null);
   const input2Ref = useRef(null);
   const inputToken = reversed ? token2 : token1;
@@ -209,12 +217,7 @@ if(!clicked){
       setTimeout(() => input1Ref.current && input1Ref.current.focus(), 0);
     }
   };
-  useEffect(() => {
-    // Assuming 'tokens' is globally available or imported from another file
-    const usdtToken = Object.values(tokens).find(token => token.symbol === "USDT");
-    const rareToken = Object.values(tokens).find(token => token.symbol === "RARE");
-    const rareTokent = Object.values(tokenst).find(token => token.symbol === "TRARE");  
-  }, []);
+
   const [balance, setBalance] = useState(BigInt(0));
   const [allowance, setAllowance] = useState(BigInt(0));
   const fetchAllowance = async (tokenIn: Token) => {
@@ -227,7 +230,7 @@ if(!clicked){
     return thirdwebAllowance({
       contract: tokenContract,
       owner: account?.address,
-      spender: poolAddress,
+      spender: "0xdB7fF37B5221889187B353a1d7545A37c26Ca2bc",
     });
   };
 
@@ -264,36 +267,472 @@ if(!clicked){
   );
   const data = ethers.toUtf8Bytes(''); // Empty data
   const { mutate: sendTransaction } = useSendTransaction();
-  const inputAmountWei = inputAmount && !isNaN(Number(inputAmount)) 
-  && toWei(inputAmount);
-
-  const buy = prepareContractCall({
-    contract: getAmmContract(poolAddress, currentChain),
-    method: "executeTimedLimitOrder",
-    params: [inputAmountWei, inputAmountWei, BigInt(expiration), token1?.address],
-  });
-  const sell = prepareContractCall({
-    contract: getAmmContract(poolAddress, currentChain),
-    method: "executeTimedLimitOrder",
-    params: [inputAmountWei, inputAmountWei, BigInt(expiration), token2?.address],
-  });
-  const WCORE_CONTRACT = getContract({
-    address: '0x191e94fa59739e188dce837f7f6978d84727ad01',
+  const inputAmountWei = inputAmount && !isNaN(Number(inputAmount)) && toWei(inputAmount);
+  const minWei = toWei(minOutput || inputAmount);
+  const contract = getContract({
     client: client,
-    chain: currentChain
+    chain: currentChain,
+    address: "0xdB7fF37B5221889187B353a1d7545A37c26Ca2bc",
+    abi:  [
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "_factory",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "_pair",
+            "type": "address"
+          }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "uint256",
+            "name": "orderId",
+            "type": "uint256"
+          }
+        ],
+        "name": "OrderCanceled",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "uint256",
+            "name": "orderId",
+            "type": "uint256"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "owner",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "inputAmount",
+            "type": "uint256"
+          },
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "inputToken",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "outputToken",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "limitPrice",
+            "type": "uint256"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "expiration",
+            "type": "uint256"
+          },
+          {
+            "indexed": false,
+            "internalType": "bool",
+            "name": "isBuy",
+            "type": "bool"
+          }
+        ],
+        "name": "OrderCreated",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "uint256",
+            "name": "orderId",
+            "type": "uint256"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "executor",
+            "type": "address"
+          }
+        ],
+        "name": "OrderExecuted",
+        "type": "event"
+      },
+      {
+        "inputs": [],
+        "name": "PRECISION",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint256",
+            "name": "orderId",
+            "type": "uint256"
+          }
+        ],
+        "name": "cancelLimitOrder",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint256",
+            "name": "inputAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "inputToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "outputToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "limitPrice",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "expiration",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "isBuy",
+            "type": "bool"
+          }
+        ],
+        "name": "createLimitOrder",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint256",
+            "name": "orderId",
+            "type": "uint256"
+          }
+        ],
+        "name": "executeLimitOrder",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "factory",
+        "outputs": [
+          {
+            "internalType": "contract IRareBayV2Factory",
+            "name": "",
+            "type": "address"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint256",
+            "name": "orderId",
+            "type": "uint256"
+          }
+        ],
+        "name": "getOrderDetails",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "inputAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "inputToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "outputToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "owner",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "limitPrice",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "expiration",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "isBuy",
+            "type": "bool"
+          },
+          {
+            "internalType": "enum LimitOrderManager.OrderStatus",
+            "name": "status",
+            "type": "uint8"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "user",
+            "type": "address"
+          }
+        ],
+        "name": "getUserOrderIds",
+        "outputs": [
+          {
+            "internalType": "uint256[]",
+            "name": "",
+            "type": "uint256[]"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "name": "limitOrders",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "inputAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "inputToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "outputToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "owner",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "limitPrice",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "expiration",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "isBuy",
+            "type": "bool"
+          },
+          {
+            "internalType": "enum LimitOrderManager.OrderStatus",
+            "name": "status",
+            "type": "uint8"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "nextOrderId",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "pair",
+        "outputs": [
+          {
+            "internalType": "address",
+            "name": "",
+            "type": "address"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "_pair",
+            "type": "address"
+          }
+        ],
+        "name": "setPair",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "token0",
+        "outputs": [
+          {
+            "internalType": "address",
+            "name": "",
+            "type": "address"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "token1",
+        "outputs": [
+          {
+            "internalType": "address",
+            "name": "",
+            "type": "address"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "name": "userOrders",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      }
+    ]
+  })
+  const buy = prepareContractCall({
+    contract,
+    method: "createLimitOrder",
+    params: [inputAmountWei, token1?.address, token2?.address, address, toWei('1'), toWei('86000'), true],
   });
-  const wrap = prepareContractCall({
-    contract: WCORE_CONTRACT,
-    method: "function deposit()",
-		params: [],
-		value: inputAmountWei
+
+  const sell = prepareContractCall({
+    contract,
+    method: "createLimitOrder",
+    params: [inputAmountWei, token1?.address, token2?.address, address, toWei('1'), toWei('86000'), false],
   });
-  const unwrap = prepareContractCall({
-    contract: WCORE_CONTRACT,
-    method: "function withdraw()",
-		params: [],
-		value: inputAmountWei
+
+  const ordersIds = useReadContract({
+    contract,
+    method: "getUserOrderIds",
+    params: [address],
   });
+
+
+
+  const execute = useReadContract({
+    contract,
+    method: "executeLimitOrder",
+    params: [toWei('')],
+  });
+
+
   const tokenContract = thirdwebGetContract({
     client: client,
     chain: currentChain,
@@ -357,12 +796,7 @@ useEffect(() => {
   updateBalances();
 }, [account?.address, token1, token2]);
 
-useEffect(() => {
-  const rareToken = currentChain?.id === 1116 
-    ? tokens["RareCoin"] 
-    : tokenst["RareCoin"];
-  setToken2(rareToken);
-}, [currentChain?.id]); // Update when chain changes
+
 
 const fetchBalances = async (tokens: Token[], accountAddress: any, currentChain: any) => {
   const balances: Record<string, string> = {};
@@ -499,6 +933,85 @@ useEffect(() => {
   return () => clearInterval(interval);
 }, [token1?.symbol]);
 
+
+const [formData, setFormData] = useState({
+  inputAmount: inputAmountWei,
+  inputToken: token1?.address,    // Input token address
+  outputToken: token2?.address,   // Output token address
+  to: address,
+  limitPrice: toWei(''),
+  expirationOption: "1 Day",
+  isBuy: true,
+});
+const [orders, setOrders] = useState<any[]>([]);
+const [currentTime, setCurrentTime] = useState(Math.floor(Date.now() / 1000));
+const [id, setId] = useState('');
+const orderDetails = useReadContract({
+  contract,
+  method: "getOrderDetails",
+  params: [toWei(id)],
+});
+// Update current time every second
+useEffect(() => {
+  const timer = setInterval(() => {
+    setCurrentTime(Math.floor(Date.now() / 1000));
+  }, 1000);
+  return () => clearInterval(timer);
+}, []);
+
+  // Fetch user's orders
+  useEffect(() => {
+    if (!address) return;
+
+    const fetchOrders = async () => {
+      const orders = await Promise.all(
+        ordersIds.data.map(async (orderId) => {
+        setId(toEther(orderId))
+        })
+      );
+
+      setOrders(orders);
+    };
+
+    fetchOrders();
+  }, [address]);
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      for (const order of orders) {
+        if (order.status === "Active") {
+          // Check if the order has expired
+          if (order.expiration <= currentTime) {
+            // Cancel the order
+            await prepareContractCall({
+              contract,
+              method: "cancelLimitOrder",
+              params: [order.orderId],
+            });
+            console.log(`Order ${order.orderId} canceled`);
+          } else {
+            // Check if the price condition is met
+            const currentPrice = await getTokenPrice(order.inputToken, order.outputToken);
+            if (
+              (order.isBuy && currentPrice <= order.limitPrice) ||
+              (!order.isBuy && currentPrice >= order.limitPrice)
+            ) {
+              // Execute the order
+              await prepareContractCall({
+                contract,
+                method: "executeLimitOrder",
+                params: [order.orderId],
+              });
+              console.log(`Order ${order.orderId} executed`);
+            }
+          }
+        }
+      }
+    }, 10000); // Check every 10 seconds
+
+    return () => clearInterval(interval);
+  }, [orders, currentTime]);
+  
   return (
     <>
       <div className={`trade-trade ${props.rootClassName} `}>
@@ -601,8 +1114,7 @@ useEffect(() => {
           </button>
         ))}
       </div>
-        <div className="trade-container8">
-        <div className="trade-buyandsell">
+      <div className="trade-buyandsell">
           <div className="trade-container2">
             <button
              onClick={() => {
@@ -624,7 +1136,7 @@ useEffect(() => {
                     return approve({
                         contract: tokenContract,
                         amount: Number(inputAmount),
-                        spender: poolAddress
+                        spender: "0xdB7fF37B5221889187B353a1d7545A37c26Ca2bc"
                     })
                 }}
                 onSent="Approve your tokens for use..."
@@ -678,7 +1190,7 @@ BUY
                     return approve({
                         contract: tokenContract,
                         amount: Number(inputAmount),
-                        spender: poolAddress
+                        spender: "0xdB7fF37B5221889187B353a1d7545A37c26Ca2bc"
                     })
                 }}
                 onSent="Approve your tokens for use..."
@@ -714,11 +1226,7 @@ SELL
             </button>
           </div>
         </div>
-      
-        </div>
-        <div className='note'>
-Select
-        </div>
+        
       </div>
       <style jsx>
         {`

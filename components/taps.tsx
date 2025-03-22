@@ -476,7 +476,7 @@ export default function Tap() {
   }, [countdown, countdownStarted]);
 
   const startRace = () => {
-    setRemainingTapsRace(remainingTaps); // Reset player taps
+    setRemainingTapsRace(MAX_TAPS);// Reset player taps
     setRemainingTaps(remainingTaps); // Reset player taps
     setStartTime(Date.now());
     setIsRunning(true);
@@ -485,7 +485,7 @@ export default function Tap() {
     setRaceActive(true);
     setRaceResult('');
     setIsModalOpen(false);
-    setRaceProgress(MAX_TAPS - remainingTaps);  // Reset auto race progress
+    setRaceProgress(0); // Reset auto race progress
   };
 
   const pauseRace = () => {
@@ -749,9 +749,9 @@ const contract = getContract({
   chain: defineChain(1116),
   address: "0x06EB5B8BBd08f184C05D3d7E47efc4E84b6d6d4C",
 });
-const tokenId = ethers.parseUnits('0');
-const tokenId1 = ethers.parseUnits('1');
-const quantity = ethers.parseUnits('1');
+
+const tokenId = BigInt(0);
+const quantity = BigInt(1);
 const isERC721Query = useReadContract(isERC721, { contract });
 const isERC1155Query = useReadContract(isERC1155, { contract });
 	const contractMetadataQuery = useReadContract(getContractMetadata, {
@@ -815,94 +815,66 @@ const isERC1155Query = useReadContract(isERC1155, { contract });
 			? Number(toTokens(priceInWei, currencyMetadata.data.decimals))
 			: null;
       const [isMinting, setIsMinting] = useState(false);
-const Buy2x = () => {
-  return(
-    <ClaimButton
-    theme={"light"}
-    contractAddress={contract?.address}
-    chain={defineChain(1116)}
-    client={client}
-    claimParams={
-      isERC1155
-        ? {
-            type: "ERC1155",
-            tokenId: tokenId,
-            quantity: BigInt(quantity),
-            to: account?.address,
-            from: account.address,
-          }
-        : isERC721
-          ? {
-              type: "ERC721",
-              quantity: BigInt(quantity),
-              to: account?.address,
-              from: account.address,
-            }
-          : {
-              type: "ERC20",
-              quantity: String(quantity),
-              to: address,
-              from: account.address,
-            }
-    }
-    style={{
-      backgroundColor: "transparent",
-      color: "white",
-      width: "100%",
-      height: '0px',
-      padding: '0px'
-    }}
-    disabled={isMinting}
-    onTransactionSent={() => addToast('info', 'Minting...')}
-    onTransactionConfirmed={() =>
-      addToast('success', 'Minting...')
-    }
-    onError={(err) => addToast('error', err.message)}
-  >
-    Buy
-  </ClaimButton> 
-  )
-};
-const Buy5x = () => {
-  return(
-    <ClaimButton
-    theme={"light"}
-    contractAddress={contract?.address}
-    chain={defineChain(1116)}
-    client={client}
-    claimParams={
-      isERC1155
-        && {
-            type: "ERC1155",
-            tokenId: tokenId1,
-            quantity: quantity,
-            to: account?.address,
-          }
-       
-    }
-    style={{
-      backgroundColor: "transparent",
-      color: "white",
-      width: "0px",
-      height: '0px',
-      padding: '0px'
-    }}
-    disabled={isMinting}
-    onTransactionSent={() => addToast('info', 'Minting...')}
-    onTransactionConfirmed={() =>
-      addToast('success', 'Minting...')
-    }
-    onError={(err) => addToast('error', err.message)}
-  >
-    Buy
-  </ClaimButton> 
-  )
-};
+
+
 const { showEarthContainer, toggleEarthContainer, setShowEarthContainer } = useBackground();
 const { isAudioEnabled, toggleAudio } = useBackground();
+const Countdown = ({ onFinish }) => {
+  const [count, setCount] = useState(3);
+  const [flashPoints, setFlashPoints] = useState([]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCount(prev => {
+        if (prev <= 0) {
+          clearInterval(timer);
+          onFinish();
+          return 0;
+        }
+        
+        // Create flash point for each number
+        const x = Math.random() * window.innerWidth;
+        const y = Math.random() * window.innerHeight;
+        const size = Math.random() * 0.5 + 0.5; // Random size between 0.5 and 1
+    
+        const newFlash = {
+          id: Date.now(),
+          y,
+          x,
+          size,
+        };
+    
+        setFlashPoints((prevFlashPoints) => [...prevFlashPoints, newFlash]);
+    
+        
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   return (
+    <div className={styles.countdownOverlay}>
+      {flashPoints.map((point) => (
+        <div 
+          key={point.id}
+          className={styles.flashNumber}
+          style={{ animation: 'zoomOut 1s forwards' }}
+        >
+          {point.value}
+        </div>
+      ))}
+      <div className={styles.countdownText}>{count > 0 ? count : 'GO!'}</div>
+    </div>
+  );
+};
+  return (
     <>
+    {countdownStarted && <Countdown onFinish={() => {
+  setIsRunning(true);
+  setCountdownStarted(false);
+}} />}
       {isModalOpen && !raceActive &&
         <>
 
@@ -973,14 +945,74 @@ const { isAudioEnabled, toggleAudio } = useBackground();
                       <img  src='https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExdHQ0Z284NGRkOWg4dGx4cmNlOXdlY3ZkZnUyaW1pNmJvaTBoZHRzNCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/5G1VDKTWdvuVFa3TaM/giphy.gif' height={50}></img>
                       <p style={{border: 'solid 1px rgba(120, 120, 120, 0.7)', borderRadius: '8px', padding: '4px 4px', background: 'lightblue', color: 'grey' }} className='center'>100 RARE<img src='/jhjj-200w.webp' height={16}></img></p>
                       <p className='button' style={{ width: '100%'}}>
-                        <Buy2x />
+                      <ClaimButton
+    theme={"light"}
+    contractAddress={contract?.address}
+    chain={defineChain(1116)}
+    client={client}
+    claimParams={
+      isERC1155
+        && {
+            type: "ERC1155",
+            tokenId: tokenId,
+            quantity: BigInt(quantity),
+            to: account?.address,
+            from: account.address,
+          }
+    }
+    style={{
+      backgroundColor: "transparent",
+      color: "white",
+      width: "100%",
+      height: '0px',
+      padding: '0px'
+    }}
+    disabled={isMinting}
+    onTransactionSent={() => addToast('info', 'Minting...')}
+    onTransactionConfirmed={() =>
+      addToast('success', 'Minting...')
+    }
+    onError={(err) => addToast('error', err.message)}
+  >
+    Buy
+  </ClaimButton> 
                          <svg width="18px" height="18px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M7.5 18C8.32843 18 9 18.6716 9 19.5C9 20.3284 8.32843 21 7.5 21C6.67157 21 6 20.3284 6 19.5C6 18.6716 6.67157 18 7.5 18Z" stroke="#a6a6a6" stroke-width="1.5"></path> <path d="M16.5 18.0001C17.3284 18.0001 18 18.6716 18 19.5001C18 20.3285 17.3284 21.0001 16.5 21.0001C15.6716 21.0001 15 20.3285 15 19.5001C15 18.6716 15.6716 18.0001 16.5 18.0001Z" stroke="#a6a6a6" stroke-width="1.5"></path> <path d="M11 10.8L12.1429 12L15 9" stroke="#a6a6a6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M2 3L2.26121 3.09184C3.5628 3.54945 4.2136 3.77826 4.58584 4.32298C4.95808 4.86771 4.95808 5.59126 4.95808 7.03836V9.76C4.95808 12.7016 5.02132 13.6723 5.88772 14.5862C6.75412 15.5 8.14857 15.5 10.9375 15.5H12M16.2404 15.5C17.8014 15.5 18.5819 15.5 19.1336 15.0504C19.6853 14.6008 19.8429 13.8364 20.158 12.3075L20.6578 9.88275C21.0049 8.14369 21.1784 7.27417 20.7345 6.69708C20.2906 6.12 18.7738 6.12 17.0888 6.12H11.0235M4.95808 6.12H7" stroke="#a6a6a6" stroke-width="1.5" stroke-linecap="round"></path> </g></svg></p>
                     </div>
                     <div className='center-c' style={{border: 'solid 1px rgba(20, 80, 150)', borderRadius: '20px', padding: '10px 10px', width: '45%', background: 'rgba(20, 20, 120, 0.3)'}}>
                       <img src='https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExdHQ0Z284NGRkOWg4dGx4cmNlOXdlY3ZkZnUyaW1pNmJvaTBoZHRzNCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/5G1VDKTWdvuVFa3TaM/giphy.gif' height={50}></img>
                       <p style={{border: 'solid 1px rgba(120, 120, 120, 0.7)', borderRadius: '8px', padding: '4px 4px', background: 'gold', color: 'grey' }} className='center'>5 CORE<img src='/core-200w.png' height={16}></img></p>
                       <p className='button' style={{ width: '100%'}}>
-                      <Buy5x />
+                      <ClaimButton
+    theme={"light"}
+    contractAddress={contract?.address}
+    chain={defineChain(1116)}
+    client={client}
+    claimParams={
+      isERC1155
+        && {
+            type: "ERC1155",
+            tokenId: tokenId,
+            quantity: quantity,
+            to: account?.address,
+          }
+       
+    }
+    style={{
+      backgroundColor: "transparent",
+      color: "white",
+      width: "0px",
+      height: '0px',
+      padding: '0px'
+    }}
+    disabled={isMinting}
+    onTransactionSent={() => addToast('info', 'Minting...')}
+    onTransactionConfirmed={() =>
+      addToast('success', 'Minting...')
+    }
+    onError={(err) => addToast('error', err.message)}
+  >
+    Buy
+  </ClaimButton>
                         <svg width="18px" height="18px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M7.5 18C8.32843 18 9 18.6716 9 19.5C9 20.3284 8.32843 21 7.5 21C6.67157 21 6 20.3284 6 19.5C6 18.6716 6.67157 18 7.5 18Z" stroke="#a6a6a6" stroke-width="1.5"></path> <path d="M16.5 18.0001C17.3284 18.0001 18 18.6716 18 19.5001C18 20.3285 17.3284 21.0001 16.5 21.0001C15.6716 21.0001 15 20.3285 15 19.5001C15 18.6716 15.6716 18.0001 16.5 18.0001Z" stroke="#a6a6a6" stroke-width="1.5"></path> <path d="M11 10.8L12.1429 12L15 9" stroke="#a6a6a6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M2 3L2.26121 3.09184C3.5628 3.54945 4.2136 3.77826 4.58584 4.32298C4.95808 4.86771 4.95808 5.59126 4.95808 7.03836V9.76C4.95808 12.7016 5.02132 13.6723 5.88772 14.5862C6.75412 15.5 8.14857 15.5 10.9375 15.5H12M16.2404 15.5C17.8014 15.5 18.5819 15.5 19.1336 15.0504C19.6853 14.6008 19.8429 13.8364 20.158 12.3075L20.6578 9.88275C21.0049 8.14369 21.1784 7.27417 20.7345 6.69708C20.2906 6.12 18.7738 6.12 17.0888 6.12H11.0235M4.95808 6.12H7" stroke="#a6a6a6" stroke-width="1.5" stroke-linecap="round"></path> </g></svg></p>
 
                     </div>
@@ -1046,7 +1078,7 @@ const { isAudioEnabled, toggleAudio } = useBackground();
           </>
         )}
         <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', width: '100%' }} >
-          {!canTap && <div className='btc' onClick={boostLimitReached ? openModal2 : activateBoostA}
+     <div className='btc' onClick={boostLimitReached ? openModal2 : activateBoostA}
           
           >
             <div className='redd'><p style={{fontSize: '8px'}}>{remainingBoosts}</p></div>
@@ -1057,8 +1089,8 @@ const { isAudioEnabled, toggleAudio } = useBackground();
               </div>
             </button>
             <p style={{ fontSize: '10px' }}>Boost</p>
-          </div>}
-          {!canTap && <div className='btc2'  >
+          </div>
+        <div className='btc2'  >
             {boostAvailable && <div className='redd' />}
 
             <button >
@@ -1071,7 +1103,7 @@ const { isAudioEnabled, toggleAudio } = useBackground();
             <p style={{ fontSize: '10px' }}>Frens</p>
 
           </div>
-          }
+          
           <button
             style={{ background: bgColor, boxShadow: canTap ? bg : 'none' }}
             className={styles.tapButton} onClick={handleTap}>

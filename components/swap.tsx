@@ -63,7 +63,6 @@ const Swap = (props: { rootClassName: any; imageAlt: string; button7: any; butto
   const [inputAmount, setInputAmount] = useState<string>('1'); // For user input
   const [slippage, setSlippage] = useState(0.1); // Set default slippage (1%)
   const {addToast} = useToast();
-  const [minOutput, setMinOutput] = useState<string>('0'); // For user input
   const input1Ref = useRef(null);
   const input2Ref = useRef(null);
   const inputToken = reversed ? token2 : token1;
@@ -236,7 +235,7 @@ if(!clicked){
     const tokenContract = thirdwebGetContract({
       client,
       chain: currentChain,
-      address: tokenIn.address as undefined
+      address: tokenIn.address 
     });
     return balanceOf({
       contract: tokenContract,
@@ -264,9 +263,7 @@ if(!clicked){
   );
   const data = ethers.toUtf8Bytes(''); // Empty data
   const { mutate: sendTransaction } = useSendTransaction();
-  const inputAmountWei = inputAmount && !isNaN(Number(inputAmount)) 
-  && toWei(inputAmount);
-
+  const inputAmountWei = inputAmount && !isNaN(Number(inputAmount)) && toWei(inputAmount);
   const transaction = prepareContractCall({
     contract: getAmmContract(poolAddress, currentChain),
     method: "swapTokens",
@@ -294,14 +291,7 @@ if(!clicked){
     chain: currentChain,
     address: inputToken?.address || token2?.address,  // Address of the token
   });
-useEffect(() => {
-  refetchBalance();
- if(allowance<inputBalance){
-  refetchAllowance();
- } else {
-   refetchAllowance();
- }
-}, [inputToken, address]); 
+
 
 useEffect(() => {
   const updateAllowance = async () => {
@@ -312,7 +302,6 @@ useEffect(() => {
   };
 
   updateAllowance();
-  refetchBalance();
 }, [inputToken, account?.address, poolAddress]);
 
 
@@ -352,12 +341,7 @@ useEffect(() => {
   updateBalances();
 }, [account?.address, token1, token2]);
 
-useEffect(() => {
-  const rareToken = currentChain?.id === 1116 
-    ? tokens["RareCoin"] 
-    : tokenst["RareCoin"];
-  setToken2(rareToken);
-}, [currentChain?.id]); // Update when chain changes
+
 
 const fetchBalances = async (tokens: Token[], accountAddress: any, currentChain: any) => {
   const balances: Record<string, string> = {};
@@ -466,33 +450,23 @@ const { data: native, isLoading, isError } = useWalletBalance({
   address: address,
   client: client,
 });
-const [price, setPrice] = useState(0);
-const [price2, setPrice2] = useState(0);
-const fetchPrice = async () => {
-  const fetchedPrice = await getTokenPrice(token1?.symbol);
-  setPrice(fetchedPrice);
-};
-const fetchPrice1 = async () => {
-  const fetchedPrice1 = await getTokenPrice(token2?.symbol);
-  setPrice2(fetchedPrice1);
-};
+
+const { data: currentPrice } = useReadContract({
+  contract: getAmmContract(poolAddress as Address || token2?.address, currentChain),
+  method: "getTokenPriceInUSDT",
+  params: [token1?.address],
+});
+const price = token1?.symbol==='USDT'?toWei('1'):currentPrice;
+const price2 = token2?.symbol==='USDT'?toWei('1'):currentPrice;
 const inputUSDValue = (
-  Number(toEther(balance1)) * (price || 0)
+  Number(toEther(balance1)) * Number(toEther(price || toWei('0')))
 ).toFixed(2);
 
 const outputUSDValue = (
   Number(toEther(balance2)) * 
-  (price2 || 0)
+  Number(toEther(price2 || toWei('0')))
 ).toFixed(2);
-useEffect(() => {
-  fetchPrice();
-  fetchPrice1();
-  const interval = setInterval(() => {
-    fetchPrice();
-    fetchPrice1();
-  }, 30000); // 30 seconds refresh
-  return () => clearInterval(interval);
-}, [token1?.symbol]);
+
 
 
 

@@ -9,24 +9,22 @@ export default async function handler(
     return res.status(405).json({ error: 'Method not allowed' });
   }
   try {
-    // Expecting a POST body like: { pairKey: "USDT-BTC", reserveA: number, reserveB: number }
+    // Expecting a POST body like: { pairKey: "RARE-USDT", reserveA: number, reserveB: number }
     const { pairKey, reserveA, reserveB } = req.body;
     if (!pairKey || reserveA === undefined || reserveB === undefined) {
       throw new Error('pairKey, reserveA, and reserveB are required');
     }
     
     // Split the pairKey to get token symbols.
-    const [tokenA, tokenB] = pairKey.split('-');
-    let tokenSymbol = '';
+    const [tokenSymbol, token2] = pairKey.split('-');
     let price = 0;
     
-    // Ensure USDT is strictly the first token (tokenA).
-    if (tokenA === 'USDT' && reserveB > 0) {
-      // tokenB is the token whose price we're calculating.
-      tokenSymbol = tokenB;
-      price = reserveA / reserveB; // Price = USDT reserve / token reserve
+    // Check that USDT is in the second position.
+    if (token2 === 'USDT' && reserveB > 0) {
+      // Calculate price as: price = reserveA (USDT reserve) / reserveB (token reserve)
+      price = reserveA / reserveB;
     } else {
-      return res.status(400).json({ error: 'Pair must have USDT as tokenA' });
+      return res.status(400).json({ error: 'Pair must have USDT as the second token' });
     }
     
     // Upsert the price in the Prices table.

@@ -398,6 +398,12 @@ const { data: reserves, isPending: twapLoading } = useReadContract({
   params: [token1?.address, token2?.address],
 });
 
+const { data: currentPrice } = useReadContract({
+  contract: getAmmContract(pair as Address || token2?.address, currentChain),
+  method: "getTokenPriceInUSDT",
+  params: [token1?.address],
+});
+
 const { addToast } = useToast();
 const [isCopied, setIsCopied] = useState<boolean>(false);
 const { copyToClipboard } = useCopyToClipboard();
@@ -574,7 +580,7 @@ const liquidity = getLiquidity(token1?.symbol);
           <div className="token-header-container22">
             <div className="token-header-container23">
               <h1 className="token-header-text14">
-              <span className="token-header-text26">${formatNumber(price?.toString() || 0.0)}</span>
+              <span className="token-header-text26">${token1?.symbol==='USDT'?formatNumber(1):formatNumber(toEther(currentPrice || toWei('0')))}</span>
               </h1>
               <span className={`token-header-text15  ${
         parseFloat(priceChanges["24hr"]) > 0 ? 'positive' : parseFloat(priceChanges["24hr"])===0 ? '': parseFloat(priceChanges["24hr"])<0 && 'negative'
@@ -869,7 +875,7 @@ const liquidity = getLiquidity(token1?.symbol);
           }
           .token-header-text26 {
             display: inline-block;
-            color: white;
+            color: rgba(70, 70, 70, 0.8);
           }
           .token-header-text27 {
             display: inline-block;

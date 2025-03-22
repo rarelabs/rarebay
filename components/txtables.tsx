@@ -40,8 +40,8 @@ const Txtables = (props) => {
   const contract = getContract({
     client: client,
     chain: currentChain,
-    address: oracle || '0xd0A9aCB2A029B1A2adf3dFc28255Cbb4370Aff87',
-    abi:  [
+    address: oracle || '0xd19DEA1Cab59E4Fc3170B5510572b0292f27eC3f',
+    abi:   [
       {
         "inputs": [
           {
@@ -422,7 +422,7 @@ const Txtables = (props) => {
           <>
           <li key={index} className="txtables-li list-item">
             <strong> {event?.transactionIndex} </strong>
-             <div className='c'  style={{display: 'flex', borderRadius: '6px', padding: '5px', background: 'white', opacity: '0.5', fontSize: '13px', minWidth: '110px', justifyContent: 'center'}}>
+             <div className='c'  style={{display: 'flex', borderRadius: '6px', padding: '5px', background: 'rgba(0, 70, 70, 70.8)', opacity: '0.5', fontSize: '13px', minWidth: '110px', justifyContent: 'center'}}>
               <strong></strong> {event?.args?.isBuy ? <p className='positive'>Buy {!event.args.isBuy ? formatNumber(toEther(event.args.inputAmount)): formatNumber(toEther(event.args.receivedAmount))} </p> : <p className='negative'>Sell {!event.args.isBuy ? formatNumber(toEther(event.args.inputAmount)): formatNumber(toEther(event.args.receivedAmount))}</p>}
             </div>
             <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', borderRadius: '6px', padding: '5px', opacity: '1', minWidth: '80px', fontSize: '13px'}}>
@@ -468,7 +468,7 @@ const Txtables = (props) => {
               ></path>
               <path
                 d="M16.382 4a2 2 0 0 1 1.71.964l.079.142l3.512 7.025a3 3 0 0 1 .308 1.109l.009.232V19a2 2 0 0 1-1.85 1.995L20 21H4a2 2 0 0 1-1.995-1.85L2 19v-5.528a3 3 0 0 1 .22-1.13l.097-.212l3.512-7.024a2 2 0 0 1 1.628-1.1L7.618 4zM8 14H4v5h16v-5h-4v.5a1.5 1.5 0 0 1-1.5 1.5h-5A1.5 1.5 0 0 1 8 14.5zm8.382-8H7.618l-3 6H8.5a1.5 1.5 0 0 1 1.493 1.356L10 13.5v.5h4v-.5a1.5 1.5 0 0 1 1.356-1.493L15.5 12h3.882z"
-                fill="currentColor"
+                fill="gray"
               ></path>
             </g>
           </svg>
@@ -484,6 +484,7 @@ const Txtables = (props) => {
           padding-top: 0px;
           position: relative;
           min-width: auto;
+          color: gray;
           height: 380px;
           align-items: center;
           flex-direction: column;

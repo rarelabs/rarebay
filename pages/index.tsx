@@ -208,7 +208,7 @@ const Home = (props) => {
     if (onboardingComplete) {
       setIsModalOpen6(false)
     }  
-    if(!address && !isConnecting) {
+    if(!address && !isConnecting && !onboardingComplete) {
       setIsModalOpen6(true)
     }
   }, []);

@@ -63,104 +63,47 @@ export const TokenProvider = ({ children }: TokenProviderProps) => {
   
 
   
-  const TOLERANCE = 1; // 10% tolerance for price fluctuation
 
-  // Update reserve pairs so that USDT is always token2
+  // Update reserve pairs so that if USDT is present, reserveA will always be the USDT reserve.
   const handleReserveUpdate = (
     tokenA: Token,
     tokenB: Token,
     reserves: { reserveA: number; reserveB: number }
   ) => {
     let key = '';
-    let updatedReserves = { reserveA: reserves.reserveA, reserveB: reserves.reserveB };
-  
-    // If tokenA is USDT, swap so USDT is tokenB.
-    if (tokenA.symbol === 'USDT' && tokenB.symbol !== 'USDT') {
+    let updatedReserves = { reserveA: 0, reserveB: 0 };
+
+    if (tokenA.symbol === 'USDT') {
+      // tokenA is USDT, so no swap needed.
       key = `${tokenB.symbol}-USDT`;
-      // Swap reserves: originally, reserveA (USDT) and reserveB (token)
-      updatedReserves = { reserveA: reserves.reserveB, reserveB: reserves.reserveA };
-    } else if (tokenB.symbol === 'USDT' && tokenA.symbol !== 'USDT') {
-      // Correct order: tokenA is non-USDT, tokenB is USDT.
+      updatedReserves = { reserveA: reserves.reserveA, reserveB: reserves.reserveB };
+    } else if (tokenB.symbol === 'USDT') {
+      // tokenB is USDT; swap so that reserveA becomes USDT.
       key = `${tokenA.symbol}-USDT`;
+      updatedReserves = { reserveA: reserves.reserveB, reserveB: reserves.reserveA };
     } else {
-      // For pairs without USDT, use the original order.
-      key = `${tokenA.symbol}-${tokenB.symbol}`;
+      // Pair does not include USDT; ignore update.
+      return;
     }
     setTokenReserves((prev) => ({ ...prev, [key]: updatedReserves }));
   };
-
 
   // Calculate token prices based on the fetched reserves.
   // For direct USDT pairs, calculate: price = reserveUSDT / reserveTOKEN.
   // Calculate and update prices every second.
 // Price calculation: update token prices every 5 seconds.
-useEffect(() => {
-  const interval = setInterval(async () => {
-    // Start with USDT price set as 1.
-    const newPrices: { [symbol: string]: number } = { USDT: 1 };
 
-    // Ensure we initialize prices for all tokens except USDT.
-    const allTokens = Object.values(tokens)
-      .map((token) => token.symbol)
-      .filter((symbol) => symbol !== 'USDT');
-    allTokens.forEach((symbol) => {
-      // Carry over the last known price (or 0 if not set).
-      newPrices[symbol] = tokenPrices[symbol] || 0;
-    });
-
-    // Process each pair in tokenReserves.
-    for (const pairKey of Object.keys(tokenReserves)) {
-      const { reserveA, reserveB } = tokenReserves[pairKey];
-      const [tokenSymbol, pairToken] = pairKey.split('-');
-
-      // Only process pairs where the second token is USDT.
-      if (reserveA > 0) {
-        // Calculate price as: price = reserveUSDT / reserveTOKEN.
-        // Here, reserveB is USDT and reserveA is the token's reserve.
-        const price = reserveB / reserveA;
-        const currentPrice = tokenPrices[tokenSymbol] || 0;
-
-        await fetch('/api/prices', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-    
-              tokenSymbol,
-              price,
-            }),
-          });
-      }
-      // Ignore pairs where USDT is not in the token2 position.
-    }
-
-    setTokenPrices(newPrices);
-  }, 1000);
-
-  return () => clearInterval(interval);
-}, [tokenReserves, tokens, tokenPrices]);
-
-
-const getTokenPrice = async (tokenSymbol?: string): Promise<number | undefined> => {
+  const getTokenPrice = async (tokenSymbol?: string): Promise<number | undefined> => {
     if (!tokenSymbol) return undefined;
-    try {
-      const res = await fetch('/api/getPrices');
-      const { prices } = await res.json();
-      const tokenData = prices.find((item: any) => item.token_symbol === tokenSymbol);
-      return tokenData ? Number(tokenData.price) : undefined;
-    } catch (error) {
-      console.error('Error fetching token price', error);
-      return undefined;
-    }
   };
 
    // Returns the current liquidity (USDT pooled) for a given token symbol.
    const getLiquidity = (tokenSymbol: string): number => {
-    // If the token is USDT, you might want to handle it differently.
     if (tokenSymbol === 'USDT') return 0;
     const pairKey = `${tokenSymbol}-USDT`;
     const pair = tokenReserves[pairKey];
-    if (pair && pair.reserveB) {
-      return Math.floor(pair.reserveB);
+    if (pair && pair.reserveA) {
+      return Math.floor(pair.reserveA);
     }
     return 0;
   };
@@ -193,10 +136,11 @@ const getTokenPrice = async (tokenSymbol?: string): Promise<number | undefined> 
   // (They will be replaced with the ones defined below.)
  // Load tokens from cookies on mount
  useEffect(() => {
+  const savedToken1 = Cookies.get('token1');
   const savedToken2 = Cookies.get('token2');
-
   // If tokens exist in cookies, set them; otherwise, use defaults
   setToken2(savedToken2 ? JSON.parse(savedToken2) : tokens["RareCoin"]);
+  setToken1(savedToken1 ? JSON.parse(savedToken1) : tokens["Tether USDT"]);
 }, []);
 
 
@@ -278,8 +222,8 @@ useEffect(() => {
   const [gasPriority, setGasPriority] = useState("auto");
   // Calculates the minimum amount after applying slippage on a given inputAmount.
   // For instance, for an inputAmount of 100 and slippage of 0.5%, the minimum output will be 100 * (1 - 0.005) = 99.5.
-  const getMinimumAmount = (inputAmount: number): number => {
-    return inputAmount * (1 - slippage / 100);
+  const getMinimumAmount = (inputAmount: string): number => {
+    return Number(inputAmount) * (1 - slippage / 100);
   };
   return (
     <TokenContext.Provider
@@ -331,7 +275,7 @@ export const useGlobalContract = (options: {
     client,
     chain: currentChain,
     address: options.address,
-    abi:   [
+    abi: [
       {
         "inputs": [],
         "stateMutability": "nonpayable",
@@ -454,6 +398,99 @@ export const useGlobalContract = (options: {
           }
         ],
         "name": "Mint",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "uint256",
+            "name": "orderId",
+            "type": "uint256"
+          }
+        ],
+        "name": "OrderCanceled",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "uint256",
+            "name": "orderId",
+            "type": "uint256"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "owner",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "inputAmount",
+            "type": "uint256"
+          },
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "inputToken",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "outputToken",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "limitPrice",
+            "type": "uint256"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "expiration",
+            "type": "uint256"
+          },
+          {
+            "indexed": false,
+            "internalType": "bool",
+            "name": "isBuy",
+            "type": "bool"
+          }
+        ],
+        "name": "OrderCreated",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "uint256",
+            "name": "orderId",
+            "type": "uint256"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "executor",
+            "type": "address"
+          }
+        ],
+        "name": "OrderExecuted",
         "type": "event"
       },
       {
@@ -615,6 +652,19 @@ export const useGlobalContract = (options: {
         "type": "function"
       },
       {
+        "inputs": [],
+        "name": "PRECISION",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
         "inputs": [
           {
             "internalType": "uint256",
@@ -761,12 +811,40 @@ export const useGlobalContract = (options: {
         "inputs": [
           {
             "internalType": "uint256",
+            "name": "orderId",
+            "type": "uint256"
+          }
+        ],
+        "name": "cancelLimitOrder",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint256",
             "name": "inputAmount",
             "type": "uint256"
           },
           {
+            "internalType": "address",
+            "name": "inputToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "outputToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          },
+          {
             "internalType": "uint256",
-            "name": "minOutput",
+            "name": "limitPrice",
             "type": "uint256"
           },
           {
@@ -775,20 +853,14 @@ export const useGlobalContract = (options: {
             "type": "uint256"
           },
           {
-            "internalType": "address",
-            "name": "inputToken",
-            "type": "address"
+            "internalType": "bool",
+            "name": "isBuy",
+            "type": "bool"
           }
         ],
-        "name": "calculateDynamicLimitPrice",
-        "outputs": [
-          {
-            "internalType": "uint256",
-            "name": "limitPrice",
-            "type": "uint256"
-          }
-        ],
-        "stateMutability": "view",
+        "name": "createLimitOrder",
+        "outputs": [],
+        "stateMutability": "nonpayable",
         "type": "function"
       },
       {
@@ -853,26 +925,11 @@ export const useGlobalContract = (options: {
         "inputs": [
           {
             "internalType": "uint256",
-            "name": "inputAmount",
+            "name": "orderId",
             "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "minOutput",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "expiration",
-            "type": "uint256"
-          },
-          {
-            "internalType": "address",
-            "name": "inputToken",
-            "type": "address"
           }
         ],
-        "name": "executeTimedLimitOrder",
+        "name": "executeLimitOrder",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -928,40 +985,6 @@ export const useGlobalContract = (options: {
         "type": "function"
       },
       {
-        "inputs": [
-          {
-            "internalType": "uint256",
-            "name": "inputAmount",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "minOutput",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "duration",
-            "type": "uint256"
-          },
-          {
-            "internalType": "address",
-            "name": "inputToken",
-            "type": "address"
-          }
-        ],
-        "name": "getCurrentValidPrice",
-        "outputs": [
-          {
-            "internalType": "uint256",
-            "name": "",
-            "type": "uint256"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
         "inputs": [],
         "name": "getReserves",
         "outputs": [
@@ -979,6 +1002,25 @@ export const useGlobalContract = (options: {
             "internalType": "uint32",
             "name": "_blockTimestampLast",
             "type": "uint32"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "token",
+            "type": "address"
+          }
+        ],
+        "name": "getTokenPriceInUSDT",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "price",
+            "type": "uint256"
           }
         ],
         "stateMutability": "view",
@@ -1051,13 +1093,26 @@ export const useGlobalContract = (options: {
         "inputs": [
           {
             "internalType": "uint256",
-            "name": "amount0Out",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "name": "limitOrders",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "inputAmount",
             "type": "uint256"
           },
           {
-            "internalType": "uint256",
-            "name": "amount1Out",
-            "type": "uint256"
+            "internalType": "address",
+            "name": "inputToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "outputToken",
+            "type": "address"
           },
           {
             "internalType": "address",
@@ -1065,9 +1120,9 @@ export const useGlobalContract = (options: {
             "type": "address"
           },
           {
-            "internalType": "bytes",
-            "name": "data",
-            "type": "bytes"
+            "internalType": "address",
+            "name": "owner",
+            "type": "address"
           },
           {
             "internalType": "uint256",
@@ -1078,11 +1133,19 @@ export const useGlobalContract = (options: {
             "internalType": "uint256",
             "name": "expiration",
             "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "isBuy",
+            "type": "bool"
+          },
+          {
+            "internalType": "enum RareBayV2Pair.OrderStatus",
+            "name": "status",
+            "type": "uint8"
           }
         ],
-        "name": "limitSwap",
-        "outputs": [],
-        "stateMutability": "nonpayable",
+        "stateMutability": "view",
         "type": "function"
       },
       {
@@ -1112,6 +1175,19 @@ export const useGlobalContract = (options: {
             "internalType": "string",
             "name": "",
             "type": "string"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "nextOrderId",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
           }
         ],
         "stateMutability": "view",
@@ -1970,7 +2046,7 @@ export const useGlobalContract2 = (options: {
 
 export const tokens: { [id: string]: Token } = {
   "CORE Native": {
-    address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+    address: '0x191e94fa59739e188dce837f7f6978d84727ad01',
     symbol: 'CORE',
     decimals: 18,
     image: '/core-200w.webp',
@@ -2036,7 +2112,7 @@ export const tokens: { [id: string]: Token } = {
 
 export const tokenst: { [id: string]: Token } = {
   "CORE Native": {
-    address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+    address: "0x3ba7144cFefc12F8C9687C676A65731C9E2339d0",
     symbol: "CORE",
     decimals: 18,
     image: "/core-200w.webp",
@@ -2080,7 +2156,7 @@ export const tokenst: { [id: string]: Token } = {
 } as const;
 
 export const FACTORY = '0xF747e68b3c52A887A88f4f7c110D3de3c80c32a5' as const;
-export const FACTORYT = "0x849A8591eC76e1Fd946db21c5F210c048697bF0B" as const;
+export const FACTORYT = "0xe08Ae7F0DDe32E063547FCCc79Dcc81BF96a5710" as const;
 
 /**
  * Custom hook to get the factory contract using the global chain.

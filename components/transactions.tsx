@@ -54,7 +54,7 @@ const liquidity = getLiquidity(token1?.symbol || token2?.symbol);
   const contract = getContract({
     client: client,
     chain: currentChain,
-    address: oracle || '0xd0A9aCB2A029B1A2adf3dFc28255Cbb4370Aff87',
+    address: oracle || '0xd19DEA1Cab59E4Fc3170B5510572b0292f27eC3f',
     abi:  [
       {
         "inputs": [
